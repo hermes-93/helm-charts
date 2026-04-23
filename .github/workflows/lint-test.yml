@@ -1,0 +1,45 @@
+---
+name: Lint and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "charts/**"
+      - ".ct.yaml"
+
+jobs:
+  lint-test:
+    name: Lint and Test Charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+
+      - name: Run ct lint
+        run: ct lint --config .ct.yaml
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: chart-testing
+
+      - name: Run ct install
+        run: ct install --config .ct.yaml
