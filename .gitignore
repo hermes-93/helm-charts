@@ -1,0 +1,12 @@
+# Helm
+*.tgz
+charts/*/charts/
+charts/*/tmpcharts/
+
+# Local testing
+.ct-tmp/
+.helm/
+
+# OS
+.DS_Store
+Thumbs.db
