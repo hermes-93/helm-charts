@@ -1,0 +1,59 @@
+# CI test values — uses nginx-unprivileged (runs as UID 101 on port 8080)
+image:
+  repository: nginxinc/nginx-unprivileged
+  tag: "1.27-alpine"
+
+replicaCount: 1
+
+service:
+  targetPort: 8080
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  fsGroup: 101
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 101
+
+# nginx-unprivileged serves / — use that for probes
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 5
+
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+  failureThreshold: 10
+  periodSeconds: 5
+
+autoscaling:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
