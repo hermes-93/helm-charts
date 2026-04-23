@@ -1,0 +1,26 @@
+apiVersion: v2
+name: webapp
+description: A production-ready Helm chart for a generic web application
+
+type: application
+
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - web
+  - application
+  - nginx
+  - deployment
+
+home: https://github.com/hermes-93/helm-charts
+
+sources:
+  - https://github.com/hermes-93/helm-charts
+
+maintainers:
+  - name: hermes-93
+    url: https://github.com/hermes-93
+
+annotations:
+  category: Web
