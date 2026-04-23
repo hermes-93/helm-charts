@@ -1,0 +1,6 @@
+remote: origin
+chart-dirs:
+  - charts
+helm-extra-args: "--timeout 60s"
+validate-maintainers: false
+check-version-increment: true
