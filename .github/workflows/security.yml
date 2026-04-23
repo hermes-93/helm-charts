@@ -1,0 +1,78 @@
+---
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  trivy:
+    name: Trivy Helm Chart Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - name: Package chart for scanning
+        run: |
+          helm package charts/webapp -d /tmp/helm-packages
+
+      - name: Run Trivy on Helm chart
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: charts/webapp
+          format: table
+          exit-code: "0"
+          severity: CRITICAL,HIGH
+
+      - name: Trivy SARIF report
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: charts/webapp
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: "0"
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+        continue-on-error: true
+
+  kubescape:
+    name: Kubescape NSA/MITRE Framework
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - name: Render chart to manifests
+        run: |
+          helm template test-release charts/webapp \
+            --values charts/webapp/ci/default-values.yaml \
+            > /tmp/rendered-manifests.yaml
+
+      - name: Run Kubescape
+        uses: kubescape/github-action@main
+        with:
+          files: /tmp/rendered-manifests.yaml
+          frameworks: NSA,MITRE
+          threshold: 30
+        continue-on-error: true
